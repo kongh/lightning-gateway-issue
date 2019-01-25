@@ -1,0 +1,84 @@
+version: "3.6"
+services:
+  lightning-register:
+    image: lightning/lightning-component:1.0
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        delay: 10s
+    ports:
+    - "12000:12000"
+    environment:
+    - JVM_OPTS=-server -Xms256m -Xmx1024m -XX:NewSize=64m
+    - APPLICATION_JAR=register-1.0-SNAPSHOT.jar
+    - SERVICE_NAME=lightning-register
+    - TZ=Asia/Shanghai
+    volumes:
+    - logdata:/product/log
+    networks:
+    - net
+  lightning-gateway:
+    image: lightning/lightning-component:1.0
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        delay: 10s
+    ports:
+    - "13020:13020"
+    environment:
+    - JVM_OPTS=-server -Xms256m -Xmx1024m -XX:NewSize=64m -Dcommon.eureka.host=lightning-register
+    - APPLICATION_JAR=gateway-1.0-SNAPSHOT.jar
+    - SERVICE_NAME=lightning-gateway
+    - TZ=Asia/Shanghai
+    volumes:
+    - logdata:/product/log
+    networks:
+    - net
+  lightning-zuul-gateway:
+    image: lightning/lightning-component:1.0
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        delay: 10s
+    ports:
+    - "13030:13030"
+    environment:
+    - JVM_OPTS=-server -Xms256m -Xmx1024m -XX:NewSize=64m -Dcommon.eureka.host=lightning-register
+    - APPLICATION_JAR=zuul-1.0-SNAPSHOT.jar
+    - SERVICE_NAME=lightning-zuul-gateway
+    - TZ=Asia/Shanghai
+    volumes:
+    - logdata:/product/log
+    networks:
+    - net
+  lightning-service:
+    image: lightning/lightning-component:1.0
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        delay: 10s
+    environment:
+    - JVM_OPTS=-server -Xms256m -Xmx1024m -XX:NewSize=64m -Dcommon.eureka.host=lightning-register
+    - APPLICATION_JAR=service-1.0-SNAPSHOT.jar
+    - SERVICE_NAME=lightning-service
+    - TZ=Asia/Shanghai
+    volumes:
+    - logdata:/product/log
+    networks:
+    - net
+networks:
+  net:
+    driver: overlay
+    attachable: true
+
+volumes:
+  logdata:
+    external: true

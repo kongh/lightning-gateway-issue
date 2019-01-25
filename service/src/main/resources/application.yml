@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: lightning-authz-service
+
+server:
+  port: 14301
+
+# 抽离的通用配置
+common:
+  eureka:
+    host: localhost
+    port: 12000
+
+## eureka 配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${common.eureka.host}:${common.eureka.port}/eureka/
+      registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 20
+    lease-expiration-duration-in-seconds: 40
+    metadata-map:
+      startup: ${random.int}
+    preferIpAddress: true
+    # instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${spring.application.instance_id:${random.value}}:${server.port}
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}:${server.port}

@@ -1,0 +1,61 @@
+version: "3.6"
+services:
+  kong:
+    image: kong:0.14.1
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+        delay: 10s
+    networks:
+    - net
+    ports:
+    - target: 8000
+      published: 80
+      protocol: tcp
+      mode: host
+    - target: 8443
+      published: 443
+      protocol: tcp
+      mode: host
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_PASSWORD=123456
+      - KONG_LUA_PACKAGE_PATH=/usr/local/custom/?.lua;;
+      - KONG_PLUGINS=bundled,lightning-canary
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
+  kong-dashboard:
+    image: pgbi/kong-dashboard
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+        delay: 10s
+    networks:
+    - net
+    ports:
+    - "18888:8080"
+    entrypoint:
+    - ./docker/entrypoint.sh
+    - start
+    - --kong-url http://kong:8001
+    - --basic-auth admin=123456
+
+
+networks:
+  net:
+    external:
+      name: kong_postgres_net

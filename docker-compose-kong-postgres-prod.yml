@@ -1,0 +1,32 @@
+version: "3.6"
+services:
+  kong-database:
+    image: postgres:9.6
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+        delay: 10s
+    volumes:
+    - postgresdata:/var/lib/postgresql/data
+    networks:
+    - net
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=kong
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=kong
+
+volumes:
+  postgresdata:
+    external: true
+
+networks:
+  net:
+    driver: overlay
+    attachable: true

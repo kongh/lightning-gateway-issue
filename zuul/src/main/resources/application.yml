@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: lightning-zuul-gateway
+  servlet:
+    multipart:
+      max-file-size: 10240KB
+      max-request-size: 20480KB
+
+# 抽离的通用配置
+common:
+  eureka:
+    host: localhost
+    port: 12000
+
+#端口
+server:
+  port: 13030
+
+## eureka 配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${common.eureka.host}:${common.eureka.port}/eureka/
+      registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 20
+    lease-expiration-duration-in-seconds: 40
+    metadata-map:
+      startup: ${random.int}
+    preferIpAddress: true
+    # instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${spring.application.instance_id:${random.value}}:${server.port}
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}:${server.port}
+
+
+# routers
+zuul:
+  host:
+    connect-timeout-millis: 30000
+    socket-timeout-millis: 60000
+    ## 默认200， 20
+    maxTotalConnections: 1000
+    maxPerRouteConnections: 100
+  semaphore:
+    maxSemaphores: 3000
+  routes:
+    lightning-authz-service:
+      path: /api/service/**
+      serviceId: lightning-authz-service
+      strip-prefix: false
+
+ribbon:
+  ConnectTimeout: 3000
+  ReadTimeout: 10000
+
+# hystrix
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000
+
+
+

@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: lightning-gateway
+  cloud:
+    gateway:
+      routes:
+      - id: lightning-authz-service
+        uri: lb://lightning-authz-service
+        order: 9000
+        predicates:
+        - Path=/api/service/**
+
+# 抽离的通用配置
+common:
+  eureka:
+    host: localhost
+    port: 12000
+
+#端口
+server:
+  port: 13020
+
+## eureka 配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${common.eureka.host}:${common.eureka.port}/eureka/
+      registry-fetch-interval-seconds: 5
+  instance:
+    lease-renewal-interval-in-seconds: 20
+    lease-expiration-duration-in-seconds: 40
+    metadata-map:
+      startup: ${random.int}
+    preferIpAddress: true
+    # instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${spring.application.instance_id:${random.value}}:${server.port}
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}:${server.port}
+
+
+# actuator监控
+management:
+  endpoints:
+    # 设置端点是否可用 默认只有shutdown可用
+    enabled-by-default: true
+    web:
+      # 设置是否暴露端点 默认只有health和info可见
+      exposure:
+        include: "*"
+        # 排除端点
+        exclude: shutdown
+
+
+
